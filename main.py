@@ -60,7 +60,7 @@ def normaliser(data) :
         data_user=data.loc[data['userid'] == i]
         moy=data_user.mean(axis = 0).get_value('rating', 0)
         data_user['rating']=data_user['rating']-moy
-        data.loc[data_train_1['userid'] == i]=data_user
+        data.loc[data['userid'] == i]=data_user
     return data
 
 
@@ -69,11 +69,11 @@ def normaliser(data) :
 #data_train_3=normaliser(data_train_3)
 #data_train_4=normaliser(data_train_4)
 #data_train_5=normaliser(data_train_5)
-#data_test_1=normaliser(data_test_1)
+data_test_1=normaliser(data_test_1)
 data_test_2=normaliser(data_test_2)
-#data_test_3=normaliser(data_test_3)
-#data_test_4=normaliser(data_test_4)
-#data_test_5=normaliser(data_test_5)
+data_test_3=normaliser(data_test_3)
+data_test_4=normaliser(data_test_4)
+data_test_5=normaliser(data_test_5)
 
 
 def convList(utilisateur, user_id):
@@ -107,13 +107,22 @@ def conversionEnsemble(data) :
     
     return retour
 
-data_train_1_conv=conversionEnsemble(data_train_1)
+#data_train_1_conv=conversionEnsemble(data_train_1)
 #data_train_2_conv=conversionEnsemble(data_train_2)
 #data_train_3_conv=conversionEnsemble(data_train_3)
+#data_train_4_conv=conversionEnsemble(data_train_4)
+#data_train_5_conv=conversionEnsemble(data_train_5)
 #data_train_1_conv.to_csv('data_train_1_conv.csv')
 #data_train_2_conv.to_csv('data_train_2_conv.csv')
+#data_train_3_conv.to_csv('data_train_3_conv.csv')
+#data_train_4_conv.to_csv('data_train_4_conv.csv')
+#data_train_5_conv.to_csv('data_train_5_conv.csv')
 
+data_train_1_conv=pd.read_csv('data_train_1_conv.csv')
 data_train_2_conv=pd.read_csv('data_train_2_conv.csv')
+data_train_3_conv=pd.read_csv('data_train_3_conv.csv')
+data_train_4_conv=pd.read_csv('data_train_4_conv.csv')
+data_train_5_conv=pd.read_csv('data_train_5_conv.csv')
 
 def score(utilisateur, item, data_utilisateur_conv) :
     
@@ -143,31 +152,25 @@ def score(utilisateur, item, data_utilisateur_conv) :
 
 def evaluation_test(data_train_conv,data_test):
     
-    ratio=0.4
-    users_id=list(data_test.userid.unique())
-    items_id=list(data_test.itemid.unique())
-    users_id_choisis=np.random.choice(users_id, round(len(users_id)*ratio))
-    items_id_choisis=np.random.choice(items_id, round(len(items_id)*ratio))
-    
     rating_reels=[]
     rating_predits=[]
     
-    #changer prendre direct des rows entieres aleatoirement
-    
-    for user_id in users_id_choisis :
-        print("user"+ str(user_id))
-        donnee1=data_test.loc[data_test['userid'] == np.int32(user_id)]
-        for item_id in items_id_choisis :
-            print("item"+str(item_id))
-            donnee2=donnee1.loc[donnee1['itemid'] == np.int32(item_id)]
-            if (donnee2.shape[0]!=0) :
-                a=score(donnee1,np.int32(item_id),data_train_conv)
-                
-                rating_reels.append(donnee2['rating'])
-                rating_predits.append(a)
-    
-    #calcul erreur
-    erreur=mean_squared_error(rating_reels,rating_predits)
-    return erreur
+    users=data_test.userid.unique()
+    for user in users :
+        donnees1=data_test.loc[data_test['userid'] == user]
+        items=donnees1.itemid.unique()
+        for item in items :        
+            print(item)
+            a=score(donnees1, item,data_train_conv)
+            
+            tmp=donnees1.loc[donnees1['itemid'] == item]
+            tmp=tmp.iloc[0]['rating']
+            rating_reels.append(tmp)
+            rating_predits.append(a)
+        
+        #calcul erreur
+        erreur=mean_squared_error(rating_reels,rating_predits)
+        return erreur
 
-erreur=evaluation_test(data_train_2_conv, data_test_2)
+erreur=evaluation_test(data_train_5_conv, data_test_5)
+        
